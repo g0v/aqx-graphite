@@ -7,6 +7,9 @@ use JSON::PP ();
 use Net::Graphite;
 use HTTP::Tiny;
 
+## Debugging.
+# $Net::Graphite::TEST = 1;
+
 my $name_to_en = {
     "\x{5357}\x{6295}\x{7e23}.\x{5357}\x{6295}" => 'Nantou_County.Nantou',
     "\x{96f2}\x{6797}\x{7e23}.\x{9ea5}\x{5bee}" => 'Yunlin_County.Mailiao',
@@ -99,7 +102,10 @@ die "Failed: $res->{status} $res->{reason}\n" unless $res->{success};
 my $aqx = JSON::PP::decode_json($res->{content});
 
 
+my @metric_data;
 for (@$aqx) {
+    $_->{pm25} = delete( $_->{'PM2.5'} );
+
     # say $_->{PublishTime};
     my $k = join(".", @{$_}{qw(County SiteName)});
     my $t = $name_to_en->{$k};
@@ -108,9 +114,21 @@ for (@$aqx) {
         die "Failed to translate: $k";
     }
 
-    for my $m (qw(PSI SO2 CO O3 PM10 PM2.5 NO2 WindSpeed WindDirec)) {
+    for my $m (qw( PSI SO2 CO O3 PM10 pm25 NO2 WindSpeed WindDirec )) {
         if ($_->{$m} ne "") {
-            say  "$t.$m = " . $_->{$m};
+            push @metric_data, {
+                path => "$t.$m",
+                value => $_->{$m}
+            };
         }
     }
+}
+
+my $graphite = Net::Graphite->new(fire_and_forget => 1);
+$graphite->{trace} = 1;
+for (@metric_data) {
+    $_->{path} = lc($_->{path}) =~ s{\s+}{_}gr;
+    $_->{path} = "epa.aqx." . $_->{path};
+
+    $graphite->send(%$_);
 }
