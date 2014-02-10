@@ -226,7 +226,7 @@ for (@$aqx) {
             };
 
             push @metric_data, {
-                path => "site_code." . $site_code->{$_->{SiteName}},
+                path => "site_code." . $site_code->{$_->{SiteName}} . ".$m",
                 value => $_->{$m}
             };
         }
