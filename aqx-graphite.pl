@@ -125,7 +125,8 @@ for (@$aqx) {
 }
 
 my $graphite = Net::Graphite->new(fire_and_forget => 1);
-$graphite->{trace} = 1;
+# $graphite->{trace} = 1;
+
 for (@metric_data) {
     $_->{path} = lc($_->{path}) =~ s{\s+}{_}gr;
     $_->{path} = "epa.aqx." . $_->{path};
