@@ -204,27 +204,12 @@ my @metric_data;
 for (@$aqx) {
     $_->{pm25} = delete( $_->{'PM2.5'} );
 
-
     unless (exists $site_code->{ $_->{SiteName} }) {
         die "Failed to find site_code for: $_->{SiteName}";
     }
 
-
-    # say $_->{PublishTime};
-    my $k = join(".", @{$_}{qw(County SiteName)});
-    my $t = $name_to_en->{$k};
-
-    unless ($t) {
-        die "Failed to translate: $k";
-    }
-
     for my $m (qw( PSI SO2 CO O3 PM10 pm25 NO2 WindSpeed WindDirec )) {
         if ($_->{$m} ne "") {
-            push @metric_data, {
-                path => "$t.$m",
-                value => $_->{$m}
-            };
-
             push @metric_data, {
                 path => "site_code." . $site_code->{$_->{SiteName}} . ".$m",
                 value => $_->{$m}
