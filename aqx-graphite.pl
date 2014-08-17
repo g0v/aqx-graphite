@@ -3,6 +3,7 @@
 use v5.14;
 use strict;
 use warnings;
+use Encode qw(encode_utf8);
 use JSON::PP ();
 use Net::Graphite;
 use HTTP::Tiny;
@@ -205,7 +206,8 @@ for (@$aqx) {
     $_->{pm25} = delete( $_->{'PM2.5'} );
 
     unless (exists $site_code->{ $_->{SiteName} }) {
-        die "Failed to find site_code for: $_->{SiteName}";
+        warn encode_utf8 "SKIP: Cannot find site_code for: $_->{SiteName} ";
+        next;
     }
 
     for my $m (qw( PSI SO2 CO O3 PM10 pm25 NO2 WindSpeed WindDirec )) {
